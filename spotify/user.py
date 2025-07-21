@@ -33,8 +33,21 @@ class User:
             info = self.auth.getUrl(next)
         return return_list
 
-
     def getPlaylistSongs(self, playlist_id):
         endpoint = f'/playlists/{playlist_id}/tracks'
         songs = self.__getListItems(endpoint, lambda x: Song(x, 'spotify'))
         return songs
+
+    def addPlaylistSongs(self, playlist_id, songs, position=None):
+        endpoint = f'/playlists/{playlist_id}/tracks'
+        groups = [songs[i * 100: (i+1) * 100] for i in range(0, int(len(songs)/100)+1)] # Split into groups of 100 songs
+        for i in range(0, len(groups)):
+            uri_list = []
+            for song in groups[i]:
+                uri_list.append(song.uri)
+            body = {
+                'uris': uri_list
+            }
+            if position is not None:
+                body['position'] = i * 100 + position
+            self.auth.postEndpoint(endpoint, body)

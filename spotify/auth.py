@@ -125,9 +125,29 @@ class Auth:
         if resp.status_code == 200:
             return(json.loads(resp.text))
         if resp.status_code == 401:
-            self.refreshToken() # Gets new token and updates header
-            resp = requests.get(url, params=params, headers=self.headers) # Try making request with fresh header
+            self.refreshToken() # Gets new token and updates headers
+            resp = requests.get(url, params=params, headers=self.headers)
             if resp.status_code == 200:
                 return json.loads(resp.text)
         # TODO: Change exception type to something more meaningful
         raise Exception(f'Failed to get {resp.request.url} with status code {resp.status_code}')
+
+    def postEndpoint(self, endpoint, body):
+        if endpoint[0] != '/':
+            endpoint = '/' + endpoint
+        url = 'https://api.spotify.com/v1' + endpoint
+        return self.postUrl(url, body)
+
+    # TODO: Improve exceptions
+    def postUrl(self, url, body):
+        if datetime.now() > self.expiration:
+            self.refreshToken()
+        resp = requests.post(url, json=body, headers=self.headers)
+        if resp.status_code != 201:
+            if resp.status_code == 401:
+                self.refreshToken()
+                resp = requests.post(url, json=body, headers=self.headers)
+                if resp.status_code != 201:
+                    raise Exception(f'Failed to post to {resp.request.url} after token refresh with status code {resp.status_code}')
+            else:
+                raise Exception(f'Failed to post to {resp.request.url} with status code {resp.status_code}')
