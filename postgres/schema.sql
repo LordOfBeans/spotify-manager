@@ -7,7 +7,6 @@ CREATE TABLE sources IF NOT EXISTS (
 	source_alias TEXT, -- Works well with config.yaml file formatting
 	source_id TEXT,
 	source_type TEXT,
-	name TEXT,
 	CONSTRAINT pk_source PRIMARY KEY (source_alias)
 );
 
